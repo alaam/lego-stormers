@@ -33,7 +33,7 @@ class LegoStormers_Missions_07_08:
         #All the movements for the program to run
         #self.push_and_move_back(28, 0, 40)
 
-        self.move_wheels(35, 0, 50)
+        self.move_wheels(36, 0, 50)
         self.move_wheels(34, 0, -50)
 
         self.move_wheels(15, -45, 40)
