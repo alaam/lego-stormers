@@ -12,8 +12,8 @@ class InnovationProject:
         self.wheels.move(amt, "cm", steering, speed)
     
     def run_mission(self):
-        self.move_wheels(99, -10, 70)
-        self.move_wheels(105,-10,-70)
+        self.move_wheels(99, 15, 70)
+        self.move_wheels(105,15,-70)
     
 
 

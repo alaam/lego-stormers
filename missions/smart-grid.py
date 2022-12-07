@@ -4,8 +4,6 @@ from math import *
 
 hub = PrimeHub()
 
-
-
 class RunInStraightLine:
     '''
     This class is a straight line algorithm, that makes the robot travel in a straight line correcting for drift
@@ -35,7 +33,7 @@ class RunInStraightLine:
         while True:
             d_counted = self.motor.get_degrees_counted()
             yaw_angle = self.hub.motion_sensor.get_yaw_angle()
-            self.motors.start(0 - yaw_angle, 30)
+            self.motors.start((0 - yaw_angle)*2, 40)
             #print ('Yaw ' + str(yaw_angle) + ' dc ' + str(d_counted))
             if abs(d_counted) >= self.degrees_counted:
                 break
@@ -43,32 +41,59 @@ class RunInStraightLine:
         self.motors.stop()
         print ('done')
 
+class SmartGrid:
+    def __init__(self,motor_pair):
+        self.wheels=motor_pair
 
-
-class OilTruck:
-    def __init__(self, motor_pair):
-        self.wheels = motor_pair
-
-    def move_wheels(self, amt, steering, speed):
-        self.wheels.move(amt, "cm", steering, speed)
-
+    def move_wheels(self,amt,steering,speed):
+        self.wheels.move(amt,"cm",steering,speed)
+    
     def move_front_motor(self, amt, speed):
         front_motor = Motor("F")
         front_motor.run_for_degrees(amt, speed)
+    
+    def turn(self, angle):
+        while abs(hub.motion_sensor.get_yaw_angle()) < abs(angle):
+            if angle < 0:
+                self.wheels.start_tank(0, 30)
+            elif angle > 0:
+                self.wheels.start_tank(30, 0)
+        self.wheels.stop()
 
     def run_mission(self):
-
-        motor_a = Motor('A')
-        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 960)
+        motor_a = Motor("A")
+        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 200)
         str_line_runner.run()
-        self.wheels.set_stop_action('coast')
-
-        self.move_front_motor(-110, 50)
-
-        self.move_wheels(-50, 0, 50)
+        self.wheels.set_stop_action("coast")
 
 
+        self.turn(-85)
 
-oil = OilTruck(MotorPair("A", "B"))
+        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 1600)
+        str_line_runner.run()
+        self.wheels.set_stop_action("coast")
 
-oil.run_mission()
+        self.turn(85)
+
+        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 1200)
+        str_line_runner.run()
+        self.wheels.set_stop_action("coast")
+
+        self.move_front_motor(-100, 50)
+        
+        self.move_wheels(20, 0, -30)
+
+        self.move_front_motor(130, 50)
+
+        self.move_wheels(50, 0, -50)
+
+        self.turn(90)
+
+        self.move_wheels(100, 5, 50)
+
+
+
+
+hand = SmartGrid(MotorPair("A", "B"))
+
+hand.run_mission()

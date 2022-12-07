@@ -5,7 +5,6 @@ from math import *
 hub = PrimeHub()
 
 
-
 class RunInStraightLine:
     '''
     This class is a straight line algorithm, that makes the robot travel in a straight line correcting for drift
@@ -43,32 +42,26 @@ class RunInStraightLine:
         self.motors.stop()
         print ('done')
 
-
-
-class OilTruck:
+class ToyFactory:
     def __init__(self, motor_pair):
         self.wheels = motor_pair
-
+    
     def move_wheels(self, amt, steering, speed):
         self.wheels.move(amt, "cm", steering, speed)
 
-    def move_front_motor(self, amt, speed):
-        front_motor = Motor("F")
-        front_motor.run_for_degrees(amt, speed)
-
+    def turn(self, angle):
+        while abs(hub.motion_sensor.get_yaw_angle()) < abs(angle):
+            if angle < 0:
+                self.wheels.start_tank(0, 30)
+            elif angle > 0:
+                self.wheels.start_tank(30, 0)
+        self.wheels.stop()
+    
     def run_mission(self):
+        self.move_wheels(5, 0, 30)
+        self.turn(-60)
+        self.move_wheels(60, 0, 50)
+        self.move_wheels(60, -10, -50)
 
-        motor_a = Motor('A')
-        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 960)
-        str_line_runner.run()
-        self.wheels.set_stop_action('coast')
-
-        self.move_front_motor(-110, 50)
-
-        self.move_wheels(-50, 0, 50)
-
-
-
-oil = OilTruck(MotorPair("A", "B"))
-
-oil.run_mission()
+toy = ToyFactory(MotorPair("A", "B"))
+toy.run_mission()

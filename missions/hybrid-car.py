@@ -4,8 +4,6 @@ from math import *
 
 hub = PrimeHub()
 
-
-
 class RunInStraightLine:
     '''
     This class is a straight line algorithm, that makes the robot travel in a straight line correcting for drift
@@ -35,7 +33,7 @@ class RunInStraightLine:
         while True:
             d_counted = self.motor.get_degrees_counted()
             yaw_angle = self.hub.motion_sensor.get_yaw_angle()
-            self.motors.start(0 - yaw_angle, 30)
+            self.motors.start((0 - yaw_angle)*2, 30)
             #print ('Yaw ' + str(yaw_angle) + ' dc ' + str(d_counted))
             if abs(d_counted) >= self.degrees_counted:
                 break
@@ -45,30 +43,36 @@ class RunInStraightLine:
 
 
 
-class OilTruck:
+class HybridCar:
     def __init__(self, motor_pair):
         self.wheels = motor_pair
 
     def move_wheels(self, amt, steering, speed):
         self.wheels.move(amt, "cm", steering, speed)
-
+    
     def move_front_motor(self, amt, speed):
         front_motor = Motor("F")
         front_motor.run_for_degrees(amt, speed)
 
     def run_mission(self):
-
+        # self.move_wheels(30, 0, 50)
         motor_a = Motor('A')
-        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 960)
+        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 360)
         str_line_runner.run()
         self.wheels.set_stop_action('coast')
 
-        self.move_front_motor(-110, 50)
 
-        self.move_wheels(-50, 0, 50)
+        self.move_wheels(10, -47, 50)
+
+        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 1500)
+        str_line_runner.run()
+        self.wheels.set_stop_action('coast')
+
+        self.move_front_motor(-150, 20)
+
+        self.move_wheels(85, -5, -50)
 
 
+hybrid_car = HybridCar(MotorPair("A", "B"))
 
-oil = OilTruck(MotorPair("A", "B"))
-
-oil.run_mission()
+hybrid_car.run_mission()

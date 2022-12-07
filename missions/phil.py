@@ -13,7 +13,7 @@ class Phil:
         self.wheels.move(amt,"cm",steering,speed)
 
     def run_mission(self):
-        wait_for_seconds(3)
+        # wait_for_seconds(3)
         self.move_wheels(220,0,100)
 
 phil=Phil(MotorPair("A","B"))
