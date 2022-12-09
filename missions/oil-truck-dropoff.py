@@ -70,7 +70,7 @@ class OilTruckDropOff:
         str_line_runner.run()
         self.wheels.set_stop_action('coast')
 
-        ## These 3 lines move back and go to bae
+        ## These 3 lines move back and go to base
         # self.move_wheels(85, 0, -50)
 
         # self.move_wheels(16, 50, 70)
@@ -79,7 +79,7 @@ class OilTruckDropOff:
         ## Alternatively
         ## Try to collect battery pack
         self.move_wheels(32, 0, -50)
-        self.move_wheels(8, 95, 50)
+        self.move_wheels(8, 93, 50)
         self.move_wheels(90, 5, 50)
 
 

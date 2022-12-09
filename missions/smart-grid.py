@@ -33,7 +33,7 @@ class RunInStraightLine:
         while True:
             d_counted = self.motor.get_degrees_counted()
             yaw_angle = self.hub.motion_sensor.get_yaw_angle()
-            self.motors.start((0 - yaw_angle)*2, 40)
+            self.motors.start((0 - yaw_angle)*2, 50)
             #print ('Yaw ' + str(yaw_angle) + ' dc ' + str(d_counted))
             if abs(d_counted) >= self.degrees_counted:
                 break
@@ -75,13 +75,13 @@ class SmartGrid:
 
         self.turn(85)
 
-        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 1200)
+        str_line_runner = RunInStraightLine(hub, self.wheels, motor_a, 1250)
         str_line_runner.run()
         self.wheels.set_stop_action("coast")
 
-        self.move_front_motor(-100, 50)
+        self.move_front_motor(-110, 50)
         
-        self.move_wheels(20, 0, -30)
+        self.move_wheels(5, 0, -30)
 
         self.move_front_motor(130, 50)
 
@@ -89,7 +89,7 @@ class SmartGrid:
 
         self.turn(90)
 
-        self.move_wheels(100, 5, 50)
+        self.move_wheels(100, 6, 50)
 
 
 

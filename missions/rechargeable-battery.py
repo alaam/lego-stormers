@@ -15,9 +15,9 @@ class battery:
     
     
     def run_mission(self):
-        self.move_wheels(50, -5, 70)
+        self.move_wheels(50, -6, 70)
 
-        self.move_wheels(13, -51, 50)
+        self.move_wheels(13, -52, 50)
 
         self.move_wheels(30, 0, -70)
 

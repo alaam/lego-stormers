@@ -51,6 +51,7 @@ class ToyFactory:
 
     def turn(self, angle):
         while abs(hub.motion_sensor.get_yaw_angle()) < abs(angle):
+            print(1)
             if angle < 0:
                 self.wheels.start_tank(0, 30)
             elif angle > 0:
@@ -58,10 +59,10 @@ class ToyFactory:
         self.wheels.stop()
     
     def run_mission(self):
-        self.move_wheels(5, 0, 30)
-        self.turn(-60)
-        self.move_wheels(60, 0, 50)
-        self.move_wheels(60, -10, -50)
+        # self.move_wheels(5, 0, 30)
+        # self.turn(-60)
+        self.move_wheels(65, 0, 50)
+        self.move_wheels(60, 5, -50)
 
 toy = ToyFactory(MotorPair("A", "B"))
 toy.run_mission()
