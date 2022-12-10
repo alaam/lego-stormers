@@ -33,7 +33,7 @@ class RunInStraightLine:
         while True:
             d_counted = self.motor.get_degrees_counted()
             yaw_angle = self.hub.motion_sensor.get_yaw_angle()
-            self.motors.start((0 - yaw_angle)*2, 30)
+            self.motors.start((0 - yaw_angle)*2, 40)
             #print ('Yaw ' + str(yaw_angle) + ' dc ' + str(d_counted))
             if abs(d_counted) >= self.degrees_counted:
                 break

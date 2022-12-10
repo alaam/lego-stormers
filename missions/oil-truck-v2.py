@@ -25,8 +25,18 @@ class OilTruck:
         self.wheels.set_stop_action('coast')
 
         self.move_front_motor(-110, 50)
-        wait_for_seconds(1)
+        wait_for_seconds(0.5)
         self.move_wheels(-50, 0, 50)
+
+        #Safety catch
+        self.move_front_motor(15, 50)
+        wait_for_seconds(0.5)
+        self.move_wheels(-50, 0, 50)
+
+
+
+        
+
 
 oil = OilTruck(MotorPair("A", "B"))
 

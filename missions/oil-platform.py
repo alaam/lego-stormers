@@ -7,6 +7,11 @@ hub = PrimeHub()
 
 
 class OilPlatform:
+    """
+    Oil platform mission.
+    Slot:
+    Alignment:
+    """
     def __init__(self, motor_pair):
         self.wheels = motor_pair
 
@@ -21,7 +26,7 @@ class OilPlatform:
         #Aligment: 3rd from the second black line
         hub.motion_sensor.reset_yaw_angle()
         motor = Motor("A")
-        str_runner = RunInStraightLine(hub, self.wheels, motor, 1140, 45)
+        str_runner = RunInStraightLine(hub, self.wheels, motor, 1140, 40)
         str_runner.run()
         print ("Str line is done, moving arm down")
         self.move_front_motor(-110, 50)
@@ -34,8 +39,6 @@ class OilPlatform:
             self.move_front_motor(-120,50)
 
         self.move_wheels(70,0,-60)
-
-
 
 
 oil = OilPlatform(MotorPair("A", "B"))

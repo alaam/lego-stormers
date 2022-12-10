@@ -13,7 +13,7 @@ class ImportChickys:
 
     def __init__(self):
         print ("Bismillah")
-    
+
     def do_chicky(self, slot):
         print("Importing chickys from slot " + str(slot))
 
@@ -33,14 +33,13 @@ class ImportChickys:
 
         with open(out_fname, "w") as f:
             f.write(program)
-        
+
         if "chickys" in sys.modules:
             del sys.modules["chickys"]
-        
+
         print ("Imported chickys!")
 
 import_chickys = ImportChickys()
 import_chickys.do_chicky(19)
 
 raise SystemExit
-

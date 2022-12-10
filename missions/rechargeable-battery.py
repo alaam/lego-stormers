@@ -6,13 +6,17 @@ hub = PrimeHub()
 
 
 class battery:
+    """
+    Rechargable battery mission
+    Slot: 10
+    Base: Right
+    Alignment: 3 from the left edge
+    """
     def __init__(self, motor_pair):
         self.wheels=motor_pair
     
     def move_wheels(self, amt, steering, speed):
         self.wheels.move(amt, "cm", steering, speed)
-    
-    
     
     def run_mission(self):
         self.move_wheels(50, -6, 70)

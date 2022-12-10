@@ -1,12 +1,18 @@
 from spike import PrimeHub, LightMatrix, Button, StatusLight, ForceSensor, MotionSensor, Speaker, ColorSensor, App, DistanceSensor, Motor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
 from math import *
+from chickys import *
 
 hub = PrimeHub()
 
 #Class for Windturbine:07
 #Class for TV:08
 class LegoStormers_Missions_07_08:
+    """
+    TV and Windturbine. This class combines the two missions.
+    Slot: 4
+    Alignment:
+    """
     def __init__(self, motor_pair):
         #Initializing the program
         self.wheels = motor_pair
@@ -33,12 +39,21 @@ class LegoStormers_Missions_07_08:
         #All the movements for the program to run
         #self.push_and_move_back(28, 0, 40)
 
-        self.move_wheels(36, 0, 50)
-        self.move_wheels(34, 0, -50)
+        self.move_wheels(40, 0, 65)
+        self.move_wheels(30, 0, -50)
 
-        self.move_wheels(15, -45, 40)
-        self.move_wheels(37, 0, 40)
-        self.move_wheels(10, 90, 25)
+        turn = GyroTurn(hub, self.wheels, -45)
+        turn.turn()
+        # self.move_wheels(15, 0, 40)
+
+
+        # self.move_wheels(37, 0, 40)
+        # self.move_wheels(10, 90, 25)
+        self.move_wheels(55, 0, 50)
+
+
+        turn = GyroTurn(hub, self.wheels, 95)
+        turn.turn()
 
         self.move_wheels(40, 0, 50)
         wait_for_seconds(0.25)

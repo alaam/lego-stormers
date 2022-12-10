@@ -50,3 +50,22 @@ class Greet:
 
     def say_alhamdulillah(self):
         print ("Alhamdulillah")
+
+
+class GyroTurn:
+    """
+    Implements turns using gyro sensor
+    """
+    def __init__(self, hub, wheels, angle):
+        self.hub = hub
+        self.wheels = wheels
+        self.angle = angle
+    
+    def turn(self):
+        self.hub.motion_sensor.reset_yaw_angle()
+        while abs(self.hub.motion_sensor.get_yaw_angle()) < abs(self.angle):
+            if self.angle < 0:
+                self.wheels.start_tank(0, 30)
+            elif self.angle > 0:
+                self.wheels.start_tank(30, 0)
+        self.wheels.stop()
