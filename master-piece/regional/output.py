@@ -7,9 +7,6 @@ import math
 import time
 from hub import port
 
-
-
-
 class PIDController:
     def __init__(self, Kp, Ki, Kd):
         self.Kp = Kp
@@ -18,18 +15,12 @@ class PIDController:
         self.prev_error = 0
         self.integral = 0
 
-
-
-
     def calculate(self, error):
         self.integral += error
         derivative = error - self.prev_error
         output = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
         self.prev_error = error
         return output
-
-
-
 
 class FLLBaseLib:
     def __init__(self,cfg=None):
@@ -53,30 +44,18 @@ class FLLBaseLib:
         self.first_arm_port = cfg["first_arm_port"] #port.D
         self.second_arm_port = cfg["second_arm_port"] #port.C
 
-
-
-
         self.cur_turn_deg=0
         motor_pair.pair(motor_pair.PAIR_1,self.left_wheel_port,self.right_wheel_port)
         motion_sensor.set_yaw_face(motion_sensor.FRONT)
         motion_sensor.reset_yaw(0)
 
-
-
-
     # cm, this is a constant for your robot
     WHEEL_CIRCUMFERENCE = 17.5
     TRACK = 8 #11.2 # cm - please measure your own robot.
 
-
-
-
     def follow_line(self,time_to_follow_in_ms):
         # Initialize PID controller with appropriate constants
         pid_controller = PIDController(Kp=0.1, Ki=0.01, Kd=0.05)
-
-
-
 
         # Set a base motor speed (adjust based on your requirements)
         base_speed = 30
@@ -87,17 +66,10 @@ class FLLBaseLib:
             steering=math.floor(3/5)*sensor_value+base_speed
             # Setpoint is the center sensor value when the robot is perfectly on the line
             setpoint = 31
-
-
-
-
             # Calculate the error
             error = setpoint - sensor_value
             # Use PID controller to get the correction value
             pid_output = pid_controller.calculate(error)
-
-
-
 
             #print("steering:",steering)
             #print("time_elapsed:",time.ticks_ms()-start_time," given:",time_to_follow_in_ms)
@@ -109,42 +81,23 @@ class FLLBaseLib:
         motor.stop(self.right_wheel_port)
         print("follow line done,", time.ticks_ms()-start_time)
 
-
-
-
-
-
-
-
     # input must be in the same unit as WHEEL_CIRCUMFERENCE
     def deg_for_dist(self,distance_cm):
         # Add multiplier for gear ratio if needed
         return int((distance_cm/FLLBaseLib.WHEEL_CIRCUMFERENCE) * 360)
 
-
-
-
     async def move(self,distance_in_cm,velo=360,steer=0):
         distance_in_deg=self.deg_for_dist(distance_in_cm)
         await motor_pair.move_for_degrees(motor_pair.PAIR_1,distance_in_deg,steer,velocity=velo,stop=motor.BRAKE, acceleration=1000)
-
-
-
 
     async def reset_yaw(self):
         motion_sensor.reset_yaw(0)
         await runloop.until(motion_sensor.stable)
 
-
-
-
     # Function that returns true when the absolute yaw angle is 90 degrees
     def turn_done(self)->bool:
         #convert tuple decidegree into same format as in app and blocks
         return abs(motion_sensor.tilt_angles()[0] * 0.1) > abs(self.cur_turn_deg)
-
-
-
 
     async def turn_using_gyro(self,deg,speed=200):
         self.cur_turn_deg=deg
@@ -165,7 +118,6 @@ class FLLBaseLib:
         diff = abs(curr)-abs(start_yaw_angle)
         print("from yaw:",abs(curr), " start_yaw_angle:",abs(start_yaw_angle)," diff:",abs(diff), "asked:",abs(deg*10))
 
-
         while abs(diff) <abs(deg*10): #yaw is decidegree hence multiply incoming angle by 10
             motor_pair.move(motor_pair.PAIR_1,turn,velocity=speed,acceleration=100)
             runloop.sleep_ms(100)
@@ -173,16 +125,12 @@ class FLLBaseLib:
             curr=motion_sensor.tilt_angles()[0]
             diff = abs(curr)-abs(start_yaw_angle)
 
-
         print("after loop yaw:",motion_sensor.tilt_angles()[0])
         #runloop.sleep_ms(3000)
         #print("after 3sec yaw:",motion_sensor.tilt_angles()[0])
         motor_pair.stop(motor_pair.PAIR_1,stop=motor.COAST)
         #motion_sensor.reset_yaw(0)
         #motor_pair.move_tank_for_degrees(motor_pair.PAIR_1,deg,0,360)
-
-
-
 
     async def turn(self,deg):
         motion_sensor.set_yaw_face(motion_sensor.FRONT)
@@ -195,16 +143,10 @@ class FLLBaseLib:
         await runloop.sleep_ms(3000)
         print("end yaw:",motion_sensor.tilt_angles()[0])
 
-
-
-
     async def spin_turn(self,degrees, mspeed=200):
         motion_sensor.set_yaw_face(motion_sensor.FRONT)
         motion_sensor.reset_yaw(0)
         print("start yaw:",motion_sensor.tilt_angles()[0])
-
-
-
 
         SPIN_CIRCUMFERENCE = FLLBaseLib.TRACK * math.pi
         # Add a multiplier for gear ratios if you’re using gears
@@ -218,9 +160,6 @@ class FLLBaseLib:
         #await runloop.sleep_ms(3000)
         print("end yaw:",motion_sensor.tilt_angles()[0])
 
-
-
-
     async def pivot_turn(self, robot_degrees, motor_speed=200):
         PIVOT_CIRCUMFERENCE = 2 *FLLBaseLib.TRACK * math.pi
         # Add a multiplier for gear ratios if you’re using gears
@@ -232,74 +171,45 @@ class FLLBaseLib:
             #pivot counter clockwise
             await motor_pair.move_for_degrees(motor_pair.PAIR_1, motor_degrees, -50, velocity=motor_speed)
 
-
-
-
     async def move_backward(self,distance_in_cm,velo=360,steer=0):
         await self.move(-distance_in_cm,velo=velo,steer=steer)
 
-
-
-
     async def move_forward(self,distance_in_cm,velo=360,steer=0):
         await self.move(distance_in_cm,velo=velo,steer=steer)
-
-
-
 
     async def turn_right(self,deg,speed=100): #200
         await self.spin_turn(deg,speed)
         #await self.pivot_turn(deg,speed)
         #await self.turn_using_gyro(deg,speed)
 
-
-
-
     async def turn_left(self,deg,speed=100): #200
         await self.spin_turn(-deg,speed)
         #await self.pivot_turn(-deg,speed)
         #await self.turn_using_gyro(deg,speed)
 
-
-
-
-
-
     async def back_arm_up(self,degree=130):
         await motor.run_to_absolute_position(self.second_arm_port,130,200,direction=motor.CLOCKWISE)
         print("back_arm_up done")
-
-
-
 
     async def back_arm_down(self,degree=200):
         await motor.run_to_absolute_position(self.second_arm_port,degree,200,direction=motor.COUNTERCLOCKWISE)
         print("back_arm_down done")
 
-
     async def front_arm_up(self,degree=4,speed=200):
         await motor.run_to_absolute_position(self.second_arm_port,degree,speed,direction=motor.CLOCKWISE)
         print("back_arm_up done")
-
-
-
 
     async def front_arm_down(self,degree=110,speed=200):
         await motor.run_to_absolute_position(self.second_arm_port,degree,speed,direction=motor.COUNTERCLOCKWISE)
         print("back_arm_down done")
 
-
-
-
     async def front_arm_go_relative(self,delta_degree,speed=200):
         await motor.run_to_relative_position(self.second_arm_port,delta_degree,speed)
         print("front_arm_go_relative done")
 
-
 class FLL2023MasterPieceMissions(FLLBaseLib):
     def __init__(self, cfg):
         super().__init__(cfg)
-
 
     async def mission_1_3d_cinema_orig(self):
         await self.front_arm_up()
@@ -307,13 +217,11 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         await self.front_arm_down(160)
         # await self.move_backward(35)
 
-
     async def mission_1_3d_cinema(self):
         await self.front_arm_up()
         await self.move_forward(30)
         await self.front_arm_down(110)
         await self.move_backward(35)
-
 
     async def mission_2_theatre(self):
         speed=660
@@ -332,7 +240,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         await self.move_backward(4)
         await self.front_arm_up()
 
-
         await self.move_forward(4)
         await self.front_arm_down(170)
         await runloop.sleep_ms(1000)
@@ -341,7 +248,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         # await self.turn_right(45)
         # await self.move_backward(65)
 
-
     async def mission_1_and_2(self):
         await self.mission_1_3d_cinema()
         await self.move_backward(15)
@@ -349,11 +255,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         await self.move_forward(20)
         await self.turn_left(45)
         await self.mission_2_theatre()
-
-
-
-
-
 
     async def mission_4_master_piece(self):
         #it going to first move forward
@@ -371,7 +272,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
             await move(1030,0,360)
             await move(-360,0,360)
 
-
     async def mission_4_master_piece_v1(self):
         #it going to first move forward
         await self.move_forward(7)
@@ -387,9 +287,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
             await motor_pair.move_for_degrees(motor_pair.PAIR_1,100,-40)
             await move(1030,0,360)
             await move(-360,0,360)
-
-
-
 
     async def mission_5_AR(self):
         #It turns right to go towards AR and turn the lever.
@@ -411,11 +308,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
             await self.turn_right(42)
             await self.move_forward(60)
 
-
-
-
-
-
     async def mission_7_music_concert(self):
         #pass
         await self.move_forward(70,600)
@@ -425,18 +317,13 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         await self.turn_left(60)
         await self.move_backward(70,600)
 
-
     async def mission_13_printer(self):
         await self.move_forward(36)
         await self.move_backward(45)
 
-
     async def mission_8_camera(self):
         await self.move_forward(35,600)
         await self.move_backward(45,800)
-
-
-
 
     async def mission_9_boat_and_flip_camera_handle_2(self):
         #await self.move_forward(48)
@@ -446,15 +333,11 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         #await self.move_forward(27)
         await self.front_arm_up()
 
-
-
-
     async def mission_9_boat_and_flip_camera_handle(self):
         await self.front_arm_up()
         await self.move_forward(50)
         await self.front_arm_down(160)
         await self.move_backward(23)
-
 
         if True:
             await self.move_forward(25)
@@ -463,7 +346,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         else:
             await self.front_arm_up()
             await self.move_backward(20)
-
 
     async def mission_10_skate_board(self):
         await self.front_arm_up()
@@ -483,9 +365,6 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
             await self.move_backward(50,600)
             await self.turn_left(110)
             await self.move_forward(70,600)
-
-
-
 
 async def main():
     # write your code here
@@ -513,8 +392,6 @@ async def main():
     # await masterpiece_missions.mission_1_and_2()
     # await masterpiece_missions.mission_10_skate_board()
 
-
-
     if False:
         print("calling move reverse")
         await ls_robot.move_backward(20)
@@ -528,9 +405,6 @@ async def main():
         await ls_robot.turn_right(90)
         print("calling move end of main")
     #sys.exit(0)
-
-
-
 
 #main()
 runloop.run(main())
