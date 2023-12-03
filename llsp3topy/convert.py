@@ -2,7 +2,7 @@
 
 # CODE CONVERTER - CONVERSOR DE CÓDIGOS
 # pyjonhact - 2020 | License GNU GPL v3
-
+# This file converts json file to a json object
 # Importa blibliotecas
 import json
 from numpy import mat, array
