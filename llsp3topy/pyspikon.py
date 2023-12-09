@@ -77,14 +77,18 @@ if args.output=='Python':
                 last_time = time.ctime(os.path.getmtime(file))
                 p = convert.convert3(openzip.extractandopen3(args.path, origin), codestart)
                 c = args.pypath
-                pythonfile = open(c+'\output.py', 'w+', encoding='utf-8')
+                #pythonfile = open(c+'\output.py', 'w+', encoding='utf-8')
+                output_py_file=args.path.replace(origin, '.py')
+                pythonfile = open(output_py_file, 'w+', encoding='utf-8')
                 pythonfile.write(p)
                 pythonfile.flush()
             time.sleep(1)
     else:
         p = convert.convert3(openzip.extractandopen3(args.path, origin), codestart)
         c = args.pypath
-        pythonfile = open(c+'\output.py', 'w+', encoding='utf-8')
+        #pythonfile = open(c+'\output.py', 'w+', encoding='utf-8')
+        output_py_file=args.path.replace(origin, '.py')
+        pythonfile = open(output_py_file, 'w+', encoding='utf-8')
         pythonfile.write(p)
 
     print(f'Time elapsed: {time.time() - start}')

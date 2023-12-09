@@ -5,7 +5,7 @@
 # This file converts json file to a json object
 # Importa blibliotecas
 import json
-from numpy import mat, array
+#from numpy import mat, array
 import inputparser as parser
 import blockinparser as bparser
 import itertools
