@@ -8,8 +8,8 @@ import time
 from hub import port
 
 def myprint(*args, **kwargs):
-    pass
-    #print(args,kwargs)
+    #pass
+    print(args,kwargs)
 
 class PIDController:
     def __init__(self, Kp, Ki, Kd):
@@ -154,9 +154,9 @@ class FLLBaseLib:
                 motor.run(self.right_wheel_port,-speed)
 
         count=1
-        requested_deg_per_achived=0.90 if correct_error else 1
+        requested_deg_per_achived= 1 if correct_error else 1
         while abs(diff) < abs(deg)*requested_deg_per_achived: #yaw is decidegree hence multiply incoming angle by 10
-            await runloop.sleep_ms(10)
+            #await runloop.sleep_ms(1)
             #myprint("from yaw:",abs(curr), " start_yaw_angle:",abs(start_yaw_angle)," diff:",abs(diff), "asked:",abs(deg*10))
             curr=self.get_360_mapped_yaw() #motion_sensor.tilt_angles()[0]
             diff = abs(curr)-abs(start_yaw_angle)
@@ -218,7 +218,7 @@ class FLLBaseLib:
         ed=0
 #        while ed or degrees:
         # Add a multiplier for gear ratios if you’re using gears
-        requested_deg_per_achived=0.90 if correct_error else 1
+        requested_deg_per_achived= 1 if correct_error else 1
         mot_degrees = int((SPIN_CIRCUMFERENCE/FLLBaseLib.WHEEL_CIRCUMFERENCE) * abs(degrees)*requested_deg_per_achived)
         if degrees > 0:
             # spin clockwise
@@ -233,7 +233,7 @@ class FLLBaseLib:
             ed=self.compute_error(sa,ea,degrees,requested_deg_per_achived)
             myprint("spin: degrees:",degrees,"ea:",ea," sa:",sa, "error correction:",ed)
             #await self.spin_turn(ed,correct_error=False,mspeed=100)
-            await self.turn_using_gyro(-ed,speed=50,correct_error=False)
+            await self.turn_using_gyro(ed,speed=50,correct_error=False)
 
 
         if False and correct_error:
@@ -264,7 +264,7 @@ class FLLBaseLib:
         await self.move(distance_in_cm,velo=velo,steer=steer)
 
 
-    async def turn_right(self,deg,speed=200,use_gyro=False,correct_error=True): #200
+    async def turn_right(self,deg,speed=200,use_gyro=False,correct_error=False): #200
         if use_gyro==False:
             await self.spin_turn(deg,speed,correct_error=correct_error)
             #await self.pivot_turn(deg,speed)
@@ -272,7 +272,7 @@ class FLLBaseLib:
             await self.turn_using_gyro(deg,speed,correct_error=correct_error)
 
 
-    async def turn_left(self,deg,speed=200,use_gyro=False,correct_error=True): #200
+    async def turn_left(self,deg,speed=200,use_gyro=False,correct_error=False): #200
         if use_gyro==False:
             await self.spin_turn(-deg,speed,correct_error=correct_error)
             #await self.pivot_turn(-deg,speed)
@@ -315,8 +315,8 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         super().__init__(cfg)
 
     async def mission_1_3d_cinema(self):
-        await self.front_arm_down(260,speed=600)
         await self.move_forward(34,velo=660,steer=-5) #30
+        await self.front_arm_down(293,speed=600) #253,260 touching floor; #293 mid-point point; #330 vertical
         #await self.front_arm_down() #110 too low but works
         #await self.front_arm_up()
         await self.turn_right(60)
@@ -332,18 +332,50 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         await self.front_arm_up()
         await self.move_backward(30)
 
-    async def mission_2_theatre(self):
+    async def mission_2_theatre_wec(self):
+        speed=660
+        if False:
+            await self.move_forward(67,600)
+        else:
+            await self.front_arm_up()
+            await self.move_forward(15,500)
+            await self.turn_right(90,correct_error=True)
+            await self.move_forward(22,500)
+            await self.turn_left(90,correct_error=True)
+            await self.move_forward(45,600)
+            #await self.turn_left(35,correct_error=False)
+            await self.turn_left(45,correct_error=True)
+            await self.move_forward(5,500)
+        num_try=2
+        for i in range(0,num_try):
+            #await self.front_arm_down(170,speed)
+            #await self.front_arm_down(90,speed=350,acce=5000)
+            await runloop.sleep_ms(500)
+            await self.move_backward(5)
+            #await self.front_arm_up()
+            if i < num_try-1:
+                await self.move_forward(5)
+                pass
+
+        #await self.move_backward(7,velo=660)
+        await self.turn_right(50,correct_error=False)
+        await self.move_backward(60,velo=660)
+        #next mission to immersive exp
+
+
+
+    async def mission_2_theatre_nec(self):
         speed=660
         if False:
             await self.move_forward(67,600)
         else:
             await self.front_arm_up()
             await self.move_forward(15)
-            await self.turn_right(90,correct_error=False)
+            await self.turn_right(90, correct_error=False)
             await self.move_forward(25)
-            await self.turn_left(90)
+            await self.turn_left(90, correct_error=False)
             await self.move_forward(42,600)
-            await self.turn_left(32,correct_error=False)
+            await self.turn_left(32, correct_error=False)
             await self.move_forward(13)
         num_try=2
         for i in range(0,num_try):
@@ -357,7 +389,7 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
                 pass
 
         #await self.move_backward(7,velo=660)
-        await self.turn_right(50)
+        await self.turn_right(50, correct_error=True)
         await self.move_backward(60,velo=660)
         #next mission to immersive exp
 
@@ -495,6 +527,51 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         #}
         myprint("end mission_1_and_2: secs:",time.time()-st)
 
+    async def mission_1_and_2_and_3_wec(self):
+        st=time.time()
+        myprint("start mission_1_and_2_and_3:",st)
+        speed=660
+        #{ await self.mission_1_3d_cinema()
+        sa=self.get_360_mapped_yaw(stablize_first=True)
+        await self.move_forward(34,velo=660,steer=-5) #30
+        await self.front_arm_down(310,speed=600)
+        #await self.front_arm_down() #110 too low but works
+        #await self.front_arm_up()
+        await self.turn_right(40)
+        await self.turn_left(40)
+        await self.front_arm_up(speed=660,force=True)
+        await self.move_backward(25,660)
+        if False:
+            ea=self.get_360_mapped_yaw(stablize_first=True)
+            ed=self.compute_error(sa,ea,0.1,1,400)
+            await self.turn_right(abs(ed),correct_error=False)
+        #}
+        
+        #{ await self.mission_2_theatre()
+        #}
+        #{mission_3_immersive_experience
+        await self.front_arm_up()
+        #await self.front_arm_go_relative(250)
+        #return
+        #await self.move_forward(25,600)
+        await self.turn_right(117,correct_error=False)
+        
+        await self.move_forward(68,600)
+        await self.turn_left(85)
+        await self.move_forward(46,velo=600)
+        return
+        if True:
+            await self.front_arm_down() #90
+            #await self.front_arm_go_relative(-75)
+            await runloop.sleep_ms(1000)
+            await self.front_arm_up(force=True)
+            await self.move_backward(45,600)
+            await self.turn_right(65)
+            await self.move_backward(80,600)
+
+        #}
+        myprint("end mission_1_and_2_and_3: secs:",time.time()-st)
+
 
     async def mission_1_and_2_and_3(self):
         st=time.time()
@@ -628,12 +705,13 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
             await self.move_forward(60)
 
     async def mission_4_master_piece(self):
+        await self.front_arm_up(90,force=True) #going more vertical to avoid hitting AR blue leafs
         #it going to first move forward
         await self.move_forward(13,660)
-        await self.turn_right(85)
+        await self.turn_right(85,speed=100)
         await self.move_forward(61,660)
-        await self.turn_left(57)
-        await self.move_forward(68,660)
+        await self.turn_left(63,speed=100)
+        await self.move_forward(71,660)
         #await self.move_backward(25) moving to AR mission for dropping the expert
         if False:
             await motor_pair.move_for_degrees(motor_pair.PAIR_1,100,100)
@@ -648,11 +726,13 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         if drop_expert:
             #continueing from mission4_master_piece_drop
             await self.move_backward(15)
-            #drop step 1 the experts
+                
+                #drop step 1 the experts
             await self.front_arm_down(220)
-            #drop step 2 the experts
+                #drop step 2 the experts
             await runloop.sleep_ms(1000)
-            await self.front_arm_up(force=True)
+            await self.front_arm_up(330,force=True) #253,260 touching floor; #293 mid-point point; #330 vertical
+            
             #continueing from mission4_master_piece_drop
             await self.move_backward(10)
         else:
@@ -721,7 +801,7 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
 
         #push the printer tray
         await self.turn_left(45)
-        await self.move_forward(18,600)
+        await self.move_forward(29,600)
         await self.move_backward(20,600)
         #come home
         await self.turn_right(60)
@@ -734,7 +814,7 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
         await self.move_backward(45)
 
     async def mission_8_camera(self):
-        await self.move_forward(35,600)
+        await self.move_forward(35,velo=600,steer=-2)
         await self.move_backward(45,800)
 
 
@@ -749,8 +829,8 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
 
     async def mission_9_boat_and_flip_camera_handle(self,camera_ring_target=False):
         await self.front_arm_up()
-        await self.move_forward(50,500,)
-        await self.turn_right(17,speed=50)
+        await self.move_forward(50,500)
+        #await self.turn_right(17,speed=50)
         await self.front_arm_down(160)
 
         if camera_ring_target:
@@ -763,6 +843,9 @@ class FLL2023MasterPieceMissions(FLLBaseLib):
             await self.move_backward(20,660)
             await self.front_arm_up()
             await self.move_backward(39,660)
+
+    async def go_between_launch_zones(self):
+        await self.move_forward(200,velo=700)
 
 
 
@@ -780,29 +863,35 @@ async def main():
     masterpiece_missions=FLL2023MasterPieceMissions(cfg)
     #await ls_robot.follow_line(10000)
 
-    race1=True
+    race1=False
     race2=False
     race3=False
     race4=False
     race5=False
     race6=False
+    race7=False
+    race9=True
     #race 1
     if race1:
-        await masterpiece_missions.mission_9_boat_and_flip_camera_handle()
+        #await masterpiece_missions.mission_9_boat_and_flip_camera_handle()
+        await masterpiece_missions.mission_2_theatre_nec()
     #race 1 ends
 
     #race 2
     if race2:
-        #await masterpiece_missions.mission_1_and_2_and_3()
-        await masterpiece_missions.mission_1_3d_cinema()
+        await masterpiece_missions.mission_9_boat_and_flip_camera_handle()
+        #await masterpiece_missions.mission_1_and_2_and_3_wec()
+        #await masterpiece_missions.mission_1_3d_cinema()
 
     #race 2 ends
 
     #race 3
     if race3:
+        await masterpiece_missions.mission_1_3d_cinema()
         #await masterpiece_missions.mission_4_master_piece()
         #await masterpiece_missions.mission_5_AR()
-        await masterpiece_missions.mission_2_theatre()
+        #await masterpiece_missions.mission_2_theatre_wec()
+        #await masterpiece_missions.mission_2_theatre_nec()
     #race 3 ends
 
     #race4
@@ -814,12 +903,19 @@ async def main():
 
     #race 5
     if race5:
-        await masterpiece_missions.mission_13_printer()
+        await masterpiece_missions.mission_4_master_piece()
+        await masterpiece_missions.mission_5_AR(drop_expert=False)
+        #await masterpiece_missions.mission_13_printer()
 
     #race6
     if race6:
+        await masterpiece_missions.mission_7_drop_audience_and_music_concert_13_push_printer()
+
+    if race7:
         await masterpiece_missions.mission_8_camera()
 
+    if race9:
+        await masterpiece_missions.go_between_launch_zones()
     #races done
 
     #await masterpiece_missions.back_arm_up()
