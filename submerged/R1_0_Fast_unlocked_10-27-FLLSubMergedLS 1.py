@@ -332,10 +332,10 @@ class FLLBaseLib:
         await self._arm_reset(port,-angle_overdrive,initial_postition_deg,speed)
 
     async def _arm_reset_back_left(self,port,angle_overdrive=359,initial_postition_deg=150,speed=700):
-        await self._arm_reset(port,angle_overdrive,initial_postition_deg,speed)
+        await self._arm_reset(port,-angle_overdrive,initial_postition_deg,speed)
 
     async def _arm_reset_back_right(self,port,angle_overdrive=359,initial_postition_deg=150,speed=700):
-        await self._arm_reset(port,-angle_overdrive,initial_postition_deg,speed)
+        await self._arm_reset(port,angle_overdrive,initial_postition_deg,speed)
 
     async def _arm_reset_left_left(self,port,angle_overdrive=359,initial_postition_deg=150,speed=700):
         await self._arm_reset(port,-angle_overdrive,initial_postition_deg,speed)
@@ -449,37 +449,35 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.move_backward(40)
         #await self.second_arm_up()
 
-    async def mission_13_CSL_20_v1(self):
-        speed=660
-        await self.second_arm_down()
-        await self.move_forward(12)
-        await self.turn_left(46)
-        await self.move_forward(22)
-        await self.turn_right(79)
-        await self.move_forward(10)
-        await self.second_arm_up()
-        await self.turn_right(70)
-        await self.move_backward(10)
-        await self.turn_left(120)
-        await self.move_backward(45)
-        await self.turn_right(20)
-        await self.move_backward(10)
 
     async def mission_13_CSL_20(self):
         speed=660
+        await self.second_arm_reset()
         await self.second_arm_down()
         await self.move_forward(12)
         await self.turn_left(46)
-        await self.move_forward(22)
-        await self.turn_right(79.5)
+        await self.move_forward(24.75)
+        await self.turn_right(89)
         await self.move_forward(10)
         await self.second_arm_up()
-        await self.turn_right(70)
-        await self.move_backward(10)
-        await self.turn_right(40)
-        await self.move_backward(5)
-        #await self.turn_right(20)
-        #await self.move_backward(10)
+        await self.turn_right(77)
+        await self.move_backward(15)
+
+
+    async def mission_scoop(self):
+        speed=660
+        await self.second_arm_reset()
+        await self.move_forward(60)
+        await self.turn_left(46)
+        await self.move_forward(24.75)
+
+    #async def mission_13_CSL_20(self):
+        #speed=660
+        #await self.second_arm_reset()     
+
+    
+        
+
 
     async def mission_15_RV_20_30(self):
         await self.move_forward(8*2.5,velo=700)
@@ -498,6 +496,7 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         pass
 
     async def race4(self):
+        await self.mission_scoop()
         pass
 
     async def race5(self):
@@ -513,9 +512,24 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         pass
 
     async def test(self):
-        await self.second_arm_reset()        
+        await self.first_arm_reset()
+        await self.first_arm_down()
+        await sound.beep()
+        await self.first_arm_up(degree=200)
+        await sound.beep()
+        await self.second_arm_reset()
+        await self.second_arm_down()
+
+        return
+        #total 200 degrees freedom of movement
+        await self.second_arm_up(degree=100)
+
+        return
+        await self.second_arm_reset()
+        return    
         await self.second_arm_down()
         await sound.beep()
+        return
         #total 200 degrees freedom of movement
         await self.second_arm_up(degree=100)
         await sound.beep()
@@ -534,35 +548,35 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 async def main():
     # write your code here
     #light_matrix.write("Hi!")
-    cfg={
+    cfg_ls={
         "left_wheel_port":port.B,
         "right_wheel_port":port.A,
         "first_color_sensor_port":port.F,
         "second_color_sensor_port":port.E,
-        "first_arm_port":port.C,
-        "second_arm_port":port.D, #port.D
+        "first_arm_port":port.D,
+        "second_arm_port":port.C, #port.D
         "first_arm_motor_position":"back_right",
         "second_arm_motor_position":"top_left"
         }
-    cfg={
+    cfg_cc={
         "left_wheel_port":port.C,
         "right_wheel_port":port.B,
         "first_color_sensor_port":port.A,
         "second_color_sensor_port":port.D,
         "first_arm_port":port.F,
         "second_arm_port":port.E, #port.D
-        "first_arm_motor_position":"top_right",
-        "second_arm_motor_position":"left_left"
+        "first_arm_motor_position":"left_left",
+        "second_arm_motor_position":"top_right"
         }
-
+    cfg=cfg_ls
     fll_match_missions=FLL2024SubmergedMissions(cfg)
     #await ls_robot.follow_line(10000)
 
-    test=True
+    test=False
     race1=False
     race2=False
     race3=False
-    race4=False
+    race4=True
     race5=False
     race6=False
     race7=False
