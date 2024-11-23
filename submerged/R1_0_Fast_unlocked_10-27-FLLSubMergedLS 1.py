@@ -80,7 +80,9 @@ class FLLBaseLib:
 
         self.first_arm_init_deg = motor.absolute_position(self.first_arm_port)
         motor_pair.pair(motor_pair.PAIR_1,self.left_wheel_port,self.right_wheel_port)
+        motor_pair.stop(motor_pair.PAIR_1,stop=motor.HOLD)
         motion_sensor.set_yaw_face(motion_sensor.FRONT)
+        self.move_history=[]
         ret=self.reset_yaw(0)
 
 
@@ -121,14 +123,87 @@ class FLLBaseLib:
         motor.stop(self.right_wheel_port)
         myprint("follow line done,", time.ticks_ms()-start_time)
 
-
-
-
     # input must be in the same unit as WHEEL_CIRCUMFERENCE
     def deg_for_dist(self,distance_cm):
         # Add multiplier for gear ratio if needed
         return int((distance_cm/FLLBaseLib.WHEEL_CIRCUMFERENCE) * 360)
+    def dist_for_deg(self,deg,no_fraction=True):
+        distf=(deg*self.WHEEL_CIRCUMFERENCE)/360
+        return int(distf) if no_fraction else distf
 
+    async def reset_wheels(self):
+        await motor.run_to_absolute_position(self.left_wheel_port,0,330)
+        await motor.run_to_absolute_position(self.right_wheel_port,0,330)
+        motor.reset_relative_position(self.left_wheel_port,0)
+        motor.reset_relative_position(self.right_wheel_port,0)
+        self.store_wheelposition(0)
+
+    def store_wheelposition(self,dist):
+        runloop.sleep_ms(500)
+        wp={}
+        wp["lw_ap"]=motor.absolute_position(port.B)
+        wp["rw_ap"]=motor.absolute_position(port.A)
+        wp["lw_rp"]=motor.relative_position(port.B)
+        wp["rw_rp"]=motor.relative_position(port.A)
+        wp['dist_cm']=dist
+        wp['dist_deg']=self.deg_for_dist(dist)
+
+        self.move_history.append(wp)
+        #myprint("lw_ap:",wp["lw_ap"]," rw_ap:",wp["rw_ap"])
+        myprint("lw_rp:",wp["lw_rp"]," rw_rp:",wp["rw_rp"]," dist_cm:",dist, " dist_deg:",wp['dist_deg'])
+
+    def compute_average_error(self):
+        pwp=self.move_history[0]
+        total_requested_deg=pwp["dist_deg"]
+        total_requested_cm=pwp['dist_cm']
+        total_moved_deg_lw=0
+        total_moved_deg_rw=0
+        for wp in self.move_history[1:]:
+            lwm=abs(wp['lw_rp'])-abs(pwp['lw_rp'])
+            rwm=abs(wp['rw_rp'])-abs(pwp['rw_rp'])
+            total_moved_deg_lw+=lwm
+            total_moved_deg_rw+=rwm
+            total_requested_deg+=wp["dist_deg"]
+            total_requested_cm+=wp["dist_cm"]
+            pwp=wp
+        lwed=abs(total_requested_deg-total_moved_deg_lw)
+        rwed=abs(total_requested_deg-total_moved_deg_rw)
+        lwae_dist=self.dist_for_deg(lwed,False)/total_requested_cm
+        rwae_dist=self.dist_for_deg(rwed,False)/total_requested_cm
+        myprint("total_requested_deg:",total_requested_deg," total_requested_cm:",total_requested_cm," left avg error dist:",lwae_dist," right avg error dist:",rwae_dist)
+        myprint("total_moved_deg_lw:",total_moved_deg_lw," total_moved_deg_rw:",total_moved_deg_rw," lwed:",lwed," rwed:",rwed)
+        myprint("lwae_dist:",self.dist_for_deg(lwed,False)," rwae_dist:",self.dist_for_deg(lwed,False))
+
+    def calculate_parameters_VAD(self, degrees, max_velocity=660, min_velocity=100, base_accel=1000, scaling_factor=0.5):
+        """
+        Calculate velocity, acceleration, and deceleration dynamically based on the requested degrees.
+
+        Args:
+            degrees (int): The number of degrees to move.
+            max_velocity (int): Maximum velocity allowed.
+            min_velocity (int): Minimum velocity allowed.
+            base_accel (int): Base acceleration value for larger distances.
+            scaling_factor (float): Scaling factor for velocity and acceleration.
+
+        Returns:
+            (int, int, int): Tuple of velocity, acceleration, and deceleration.
+        """
+        # Calculate velocity
+        velocity = max(min_velocity, min(max_velocity, int(degrees * scaling_factor)))
+
+        # Calculate acceleration and deceleration
+        if abs(degrees) <= 360:# Small movements
+            accel = int(base_accel * 0.5)# Reduce acceleration for small movements
+        elif abs(degrees) <= 720:# Medium movements
+            accel = base_accel
+        else:# Large movements
+            accel = int(base_accel * 1.5)# Increase acceleration for large movements
+
+        decel = accel# Use the same value for deceleration
+
+        return velocity, accel, decel
+
+            
 
     async def move(self,distance_in_cm,velo=360,steer=0,correct_error=False):
         distance_in_deg=self.deg_for_dist(distance_in_cm)
@@ -137,14 +212,16 @@ class FLLBaseLib:
             await self.reset_yaw(0)
             sa=max(.1,self.get_360_mapped_yaw())
 
-        await motor_pair.move_for_degrees(motor_pair.PAIR_1,distance_in_deg,steer,velocity=velo,stop=motor.BRAKE, acceleration=1000)
+        velocity, acceleration, deceleration = self.calculate_parameters_VAD(distance_in_deg)
+        myprint("move: dist_cm:",distance_in_cm, " dist_deg:",distance_in_deg," steer:",steer, " velo:",velocity, " accel:",acceleration, " decel:",deceleration)
+        await motor_pair.move_for_degrees(motor_pair.PAIR_1,distance_in_deg,steer,velocity=velocity,stop=motor.SMART_BRAKE, acceleration=acceleration,deceleration=deceleration)
 
         if correct_error:
             ea=self.get_360_mapped_yaw(stablize_first=True)
             ed=self.compute_error(sa,ea,sa,requested_deg_per_achived=0,hw_err_threshold=150)
             ed = ed * (-1 if distance_in_cm<0 else 1)
             await self.turn_using_gyro(ed,speed=50,correct_error=False)
-
+        self.store_wheelposition(distance_in_cm)
 
     async def reset_yaw(self,offset=0):
         #check_stable = lambda : (( motion_sensor.acceleration(True)[0] + motion_sensor.acceleration(True)[1] ) ==0 )
@@ -154,9 +231,13 @@ class FLLBaseLib:
         await runloop.sleep_ms(65)
         #await runloop.until(motion_sensor.acceleration)
 
+    def print_yaw(self):
+        curr=self.get_360_mapped_yaw() #motion_sensor.tilt_angles()[0]
+        myprint("yaw:",curr)
+
     def get_360_mapped_yaw(self,stablize_first=False):
         if stablize_first:
-            time.sleep(0.065)
+            time.sleep(0.150)
         cy=motion_sensor.tilt_angles()[0]
         #if (cy<0): return cy+3600
         return cy/10
@@ -210,7 +291,7 @@ class FLLBaseLib:
         myprint("end yaw:",self.get_360_mapped_yaw(stablize_first=True))
 
 
-    def compute_error(self,gyro_starta,gyro_enda,requested_deg,requested_deg_per_achived,hw_err_threshold=0.3):
+    def compute_error(self,gyro_starta,gyro_enda,requested_deg,requested_deg_per_achived,hw_err_threshold=0.4):
         ea=gyro_enda
         sa=gyro_starta
         degrees=requested_deg
@@ -247,11 +328,13 @@ class FLLBaseLib:
         mot_degrees = int((SPIN_CIRCUMFERENCE/FLLBaseLib.WHEEL_CIRCUMFERENCE) * abs(degrees)*requested_deg_per_achived)
         if degrees > 0:
             # spin clockwise
-            await motor_pair.move_for_degrees(motor_pair.PAIR_1, mot_degrees, 100, velocity=mspeed)
+            #await motor_pair.move_for_degrees(motor_pair.PAIR_1, mot_degrees, 100, velocity=mspeed)
+            await self.turn_using_gyro(mot_degrees,speed=mspeed,correct_error=False)
         else:
             #spin counter clockwise
-            await motor_pair.move_for_degrees(motor_pair.PAIR_1, mot_degrees, -100, velocity=mspeed)
-        #await runloop.sleep_ms(150)
+            #await motor_pair.move_for_degrees(motor_pair.PAIR_1, mot_degrees, -100, velocity=mspeed)
+            await self.turn_using_gyro(-mot_degrees,speed=mspeed,correct_error=False)
+        await runloop.sleep_ms(150)
         ea=self.get_360_mapped_yaw(stablize_first=True) #(motion_sensor.tilt_angles()[0])/10
 
         if correct_error:
@@ -281,12 +364,12 @@ class FLLBaseLib:
             await motor_pair.move_for_degrees(motor_pair.PAIR_1, motor_degrees, -50, velocity=motor_speed)
 
 
-    async def move_backward(self,distance_in_cm,velo=360,steer=0):
-        await self.move(-distance_in_cm,velo=velo,steer=steer)
+    async def move_backward(self,distance_in_cm,velo=360,steer=0,use_gyro=False):
+        await self.move(-distance_in_cm,velo=velo,steer=steer,correct_error=use_gyro)
 
 
-    async def move_forward(self,distance_in_cm,velo=360,steer=0):
-        await self.move(distance_in_cm,velo=velo,steer=steer)
+    async def move_forward(self,distance_in_cm,velo=360,steer=0,use_gyro=False):
+        await self.move(distance_in_cm,velo=velo,steer=steer,correct_error=use_gyro)
 
 
     async def turn_right(self,deg,speed=200,use_gyro=False,correct_error=False): #200
@@ -512,6 +595,24 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         pass
 
     async def test(self):
+        #await self.reset_wheels()
+        await self.sleep(1000)
+        speed=[1,2,3,4,5,6,7,8,9,10]
+        speed=[1,5,10,25,50]
+        each_try=1
+        self.print_yaw()
+        for i in range(0,len(speed)*each_try):
+            await self.move(speed[int((i-i%each_try)/each_try)])
+            await self.sleep(1500)
+            if i>0 and i%each_try==0:
+                self.compute_average_error()
+        self.compute_average_error()
+        await self.sleep(1000)
+        self.print_yaw()
+
+        #await self.spin_turn(10,correct_error=True)
+        #await self.spin_turn(-10,correct_error=True)
+        return
         await self.first_arm_reset()
         await self.first_arm_down()
         await sound.beep()
@@ -572,11 +673,11 @@ async def main():
     fll_match_missions=FLL2024SubmergedMissions(cfg)
     #await ls_robot.follow_line(10000)
 
-    test=False
+    test=True
     race1=False
     race2=False
     race3=False
-    race4=True
+    race4=False #True
     race5=False
     race6=False
     race7=False
