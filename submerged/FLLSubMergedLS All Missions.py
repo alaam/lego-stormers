@@ -497,48 +497,31 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.turn_right(70)
         await self.move_forward(60,1000)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     async def mission_13_Change_Lanes_20(self):
 
-        await self.second_arm_reset()
+        await self.second_arm_reset(initial_position=False)
         await self.second_arm_down()
         await self.move_forward(12)
         await self.turn_left(46)
         await self.move_forward(22)
-        await self.turn_right(70.5)
-        await self.move_forward(23)
+        await self.turn_right(78)
+        await self.move_forward(16)
+        #original 23
         await self.second_arm_up()
-        await self.turn_right(71)
-        await self.move_backward(30)
-        await self.turn_right(90)
-        await self.move_forward(45,1000)
-        #await self.turn_right(45)
-        #await self.move_forward(20)
-        #await self.turn_right(42)
-        #await self.move_backward(13)
-        #await self.move_forward(40)
-        #await self.turn_right(20)
-        #await self.move_backward(10)
+        await self.turn_right(70)
+        #await self.move_backward(0)
+        await self.turn_right(85)
+        #await self.move_backward(25,1000)
+        #await self.turn_right(40)
+        #await self.second_arm_up()
+        await self.move_forward(40,1000)
+    
+    async def mission_9_UE_20_10(self):
 
+        await self.move_forward(50,600,1)
+        await self.move_backward(50,1000)
+
+        
     async def mission_13_CSL_20(self):
         speed=660
         await self.second_arm_reset()
@@ -626,7 +609,7 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.move_forward(8*2.5,velo=700)
         await self.move_forward(33*2.5,velo=700,steer=-3)
         #await self.move_forward(21*2.5,velo=700,steer=-5)
-        await self.move_backward(8*2.5,velo=700)
+        await self.move_backward(6*2.5,velo=700)
         await self.turn_left(30)
         await self.move_forward(16*2.5,velo=700)
         await self.turn_right(45)
@@ -647,7 +630,6 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
     async def race1(self):
         await self.mission_scoop1_WS_20()
-        #await self.mission_13_Change_Lanes_20()
 
     async def race2(self):
         await self.mission_1_CN_20_10_2_Shark_20_10_CR_20_15_6_30()
@@ -666,12 +648,15 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         #await self.mission_scoop()
 
     async def race6(self):
-        await self.mission_13_CSL_20()
+        await self.mission_13_Change_Lanes_20()
+        #await self.mission_13_CSL_20()
         #await self.mission_scoop1_WS_20()
 
     async def race7(self):
         await self.mission_11_SD_20_10()
 
+    async def race8(self):
+        await self.mission_9_UE_20_10()
 
     async def race9(self):
         pass
@@ -750,10 +735,11 @@ async def main():
     race3=False
     race4=False
     race5=False
-    race6=False
+    race6=True
     race7=False
+    race8=False
     race9=False
-    arm_reset=True
+    arm_reset=False
     if arm_reset:
         await fll_match_missions.robot_arm_reset()
     #test
@@ -790,6 +776,9 @@ async def main():
 
     if race7:
         await fll_match_missions.race7()
+
+    if race8:
+        await fll_match_missions.race8()
 
     if race9:
         await fll_match_missions.race9()
