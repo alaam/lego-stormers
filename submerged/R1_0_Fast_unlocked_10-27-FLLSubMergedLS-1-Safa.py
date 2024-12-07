@@ -484,7 +484,8 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
 
     async def mission_1_CN_20_10_2_Shark_20_10_CR_20_15_6_30(self):
-        #await self.second_arm_reset()
+        # await self.second_arm_reset()
+        await self.second_arm_down(200)
         await self.move_forward(68,700)
         #await self.move_forward(66,700)
         await self.turn_left(45)
@@ -503,45 +504,48 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         #await self.move_backward(3)
         await self.turn_left(25)
         await self.move_backward(10)
-        await self.turn_right(79)
+        await self.turn_right(85)
         #await self.turn_right(77)
-        await self.move_backward(13)    
+        await self.move_backward(15)    
         await self.move_forward(10)
         await self.turn_right(30)
         #await self.turn_right(50)
         await self.second_arm_down()  
-        await self.move_forward(11,500)
-        await self.second_arm_reset()
+        await self.move_forward(8,500)
+        #await self.second_arm_reset()
+        await self.second_arm_up(200,120)
         await self.turn_left(75,700)
         await self.move_backward(65,700)
-       
-
-
-    
+        await self.second_arm_up()
 
 
 
     async def mission_14b_15(self):
-        await self.move_forward(35,600)
-        await self.move_backward(35,600)
+        await self.move_forward(10,100)
+        await self.move_backward(15,900)
     
     
     
     async def mission_15_RV_20_30(self):
-        await self.move_forward(8*2.5,velo=700)
-        await self.move_forward(33*2.5,velo=700,steer=-3)
+        await self.move_forward(8*2.5,velo=900)
+        await self.move_forward(33*2.5,velo=700,steer=-2)
         #await self.move_forward(21*2.5,velo=700,steer=-5)
-        await self.move_backward(8*2.5,velo=700)
+        await self.move_backward(8*2.5,velo=900)
         await self.turn_left(30)
-        await self.move_forward(16*2.5,velo=700)
+        await self.move_forward(17*2.5,velo=900)
         await self.turn_right(45)
-        await self.move_forward(24*2.5,velo=700)
+        await self.move_forward(23*2.5,velo=900)
+
+
+    async def mission_extra_5_5(self):
+        await self.move_forward(10,150)
+        await self.move_backward(10,600)
 
     async def race1(self):
-        await self.mission_1_CN_20_10_2_Shark_20_10_CR_20_15_6_30()
+        pass
 
     async def race2(self):
-        await self.mission_15_RV_20_30()
+        await self.mission_1_CN_20_10_2_Shark_20_10_CR_20_15_6_30()
 
     async def race3(self):
         await self.mission_14b_15()
@@ -556,7 +560,7 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.mission_scoop1_WS_20()
 
     async def race7(self):
-        pass
+        await self.mission_extra_5_5()
 
     async def race9(self):
         pass
@@ -571,7 +575,7 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.second_arm_reset()
         await self.second_arm_down()
         await self.second_arm_up()
-
+     
 
         return
         #total 200 degrees freedom of movement
@@ -628,9 +632,9 @@ async def main():
 
     test=False
     race1=False
-    race2=True
+    race2=False
     race3=False
-    race4=False
+    race4=True
     race5=False
     race6=False
     race7=False
