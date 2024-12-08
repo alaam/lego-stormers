@@ -485,7 +485,7 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
     async def mission_1_CN_20_10_2_Shark_20_10_CR_20_15_6_30(self):
         # await self.second_arm_reset()
-        await self.second_arm_down(200)
+        # await self.second_arm_down(100)
         await self.move_forward(68,700)
         #await self.move_forward(66,700)
         await self.turn_left(45)
@@ -632,9 +632,9 @@ async def main():
 
     test=False
     race1=False
-    race2=False
+    race2=True
     race3=False
-    race4=True
+    race4=False
     race5=False
     race6=False
     race7=False
