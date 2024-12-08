@@ -463,17 +463,18 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
         #await self.second_arm_reset()
         #await self.second_arm_down(160)
-        await self.second_arm_up(35)
-        await self.move_forward(115,800)
+        await self.second_arm_down()
+        #await self.second_arm_up(40)
+        await self.move_forward(115,750)
         await self.turn_left(10)
         await self.turn_right(100)
         await self.move_forward(20)
         await self.second_arm_up(300)
         await self.second_arm_down()
         await self.move_backward(20)
-        await self.turn_right(40)
+        await self.turn_right(37) #40
         await self.move_forward(75,1000)
-        await self.turn_right(48)
+        await self.turn_right(50) #48
         await self.move_forward(80,700)
 
 
@@ -484,33 +485,35 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
     async def mission_11_SD_20_10(self):
 
-        await self.second_arm_reset()
+        await self.second_arm_up(200)
         await self.move_forward(20)
-        await self.turn_left(33)
-        await self.move_forward(63,700)
-        await self.turn_right(38)
-        await self.second_arm_down(75)
-        await self.move_forward(6)
-        await self.second_arm_down(7)
-        await self.turn_right(120)
-        await self.move_forward(12)
-        await self.turn_right(70)
-        await self.move_forward(60,1000)
+        await self.turn_left(26)
+        await self.move_forward(62,900)
+        await self.second_arm_down(200)
+        await self.move_backward(70,1000)
+        #await self.turn_right(38)
+        #await self.second_arm_down(75)
+        #await self.move_forward(6)
+        #await self.second_arm_down(7)
+        #await self.turn_right(120)
+        #await self.move_forward(12)
+        #await self.turn_right(70)
+        #await self.move_forward(60,1000)
 
     async def mission_13_Change_Lanes_20(self):
 
-        await self.second_arm_reset(initial_position=False)
+        #await self.second_arm_reset(initial_position=False)
         await self.second_arm_down()
         await self.move_forward(12)
         await self.turn_left(46)
-        await self.move_forward(22)
-        await self.turn_right(78)
-        await self.move_forward(16)
+        await self.move_forward(25)
+        await self.turn_right(77.5)
+        await self.move_forward(14)
         #original 23
         await self.second_arm_up()
         await self.turn_right(70)
         #await self.move_backward(0)
-        await self.turn_right(85)
+        await self.turn_right(70)
         #await self.move_backward(25,1000)
         #await self.turn_right(40)
         #await self.second_arm_up()
@@ -518,6 +521,7 @@ class FLL2024SubmergedMissions(FLLBaseLib):
     
     async def mission_9_UE_20_10(self):
 
+        await self.second_arm_down()
         await self.move_forward(50,600,1)
         await self.move_backward(50,1000)
 
@@ -600,8 +604,8 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
 
     async def mission_14b_15(self):
-        await self.move_forward(35,600)
-        await self.move_backward(35,600)
+        await self.move_forward(40,600)
+        await self.move_backward(40,600)
 
 
 
