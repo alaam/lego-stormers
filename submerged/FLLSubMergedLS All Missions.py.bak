@@ -6,7 +6,7 @@ import color_sensor
 import math
 import time
 from hub import port
-#latest all missions are merged -Ayesha
+
 # Record the start time when the program begins
 start_time = time.ticks_ms()
 
@@ -77,8 +77,7 @@ class FLLBaseLib:
         self.second_color_sensor_port = cfg["second_color_sensor_port"] #port.E
         self.first_arm_port = cfg["first_arm_port"] #port.D
         self.second_arm_port = cfg["second_arm_port"] #port.C
-        self.first_arm_after_reset_initialized=True
-        self.second_arm_after_reset_initialized=True
+
         self.first_arm_init_deg = motor.absolute_position(self.first_arm_port)
         motor_pair.pair(motor_pair.PAIR_1,self.left_wheel_port,self.right_wheel_port)
         motion_sensor.set_yaw_face(motion_sensor.FRONT)
@@ -243,7 +242,7 @@ class FLLBaseLib:
         SPIN_CIRCUMFERENCE = FLLBaseLib.TRACK * math.pi
         ed=0
 #        while ed or degrees:
-        # Add a multiplier for gear ratios if youâ€™re using gears
+        # Add a multiplier for gear ratios if you’re using gears
         requested_deg_per_achived= 1 if correct_error else 1
         mot_degrees = int((SPIN_CIRCUMFERENCE/FLLBaseLib.WHEEL_CIRCUMFERENCE) * abs(degrees)*requested_deg_per_achived)
         if degrees > 0:
@@ -272,7 +271,7 @@ class FLLBaseLib:
 
     async def pivot_turn(self, robot_degrees, motor_speed=200):
         PIVOT_CIRCUMFERENCE = 2 *FLLBaseLib.TRACK * math.pi
-        # Add a multiplier for gear ratios if youâ€™re using gears
+        # Add a multiplier for gear ratios if you’re using gears
         motor_degrees = int((PIVOT_CIRCUMFERENCE/ FLLBaseLib.WHEEL_CIRCUMFERENCE) * abs(robot_degrees))
         if robot_degrees > 0:
             # pivot clockwise
@@ -307,26 +306,23 @@ class FLLBaseLib:
 
     async def _arm_reset(self,port,angle_overdrive,initial_postition_deg,speed):
         #In motor.run_for_degrees function, positive deg spins counter-clock and negative deg spins counter-clock
-        print_motor_feedback=False
         cp=motor.absolute_position(port)
         rp=motor.relative_position(port)
         myprint("_arm_reset port:",port," before ap:",cp, " rp:",rp)
         ret=await motor.run_for_degrees(port, angle_overdrive, speed)
-        if print_motor_feedback:
-            await self.sleep(500)
-            cp=motor.absolute_position(port)
-            rp=motor.relative_position(port)
+        await self.sleep(500)
+        cp=motor.absolute_position(port)
+        rp=motor.relative_position(port)
         myprint("After angle overdrive ap:",cp, " rp:",rp)
         motor.reset_relative_position(port,0)
         odsign= -1 if angle_overdrive<0 else 1
         ipd=abs(initial_postition_deg)*-odsign
         ret=await motor.run_for_degrees(port, ipd, speed)
-        if print_motor_feedback:
-            await self.sleep(500)
-            cp=motor.absolute_position(port)
-            rp=motor.relative_position(port)
+        await self.sleep(500)
+        cp=motor.absolute_position(port)
+        rp=motor.relative_position(port)
         myprint("After reset rp ap:",cp, " rp:",rp)
-        #await sound.beep()
+        await sound.beep()
         pass
 
     async def _arm_reset_top_left(self,port,angle_overdrive=359,initial_postition_deg=150,speed=700):
@@ -348,18 +344,14 @@ class FLLBaseLib:
         #In positive deg spins counter-clock and negative deg spins counter-clock
         ret=await motor.run_for_degrees(port, deg, speed)
 
-    async def second_arm_reset(self,initial_position=True):
-        self.second_arm_after_reset_initialized=initial_position
-        initial_pos_angle=150 if initial_position else 0
+    async def second_arm_reset(self):
         if self.cfg["second_arm_motor_position"]=="top_left":
-            await self._arm_reset_top_left(self.second_arm_port,initial_postition_deg=initial_pos_angle)
+            await self._arm_reset_top_left(self.second_arm_port)
         elif self.cfg["second_arm_motor_position"]=="left_left":
-            await self._arm_reset_left_left(self.second_arm_port,initial_postition_deg=initial_pos_angle)
+            await self._arm_reset_left_left(self.second_arm_port)
 
-    async def first_arm_reset(self,initial_position=True):
-        self.first_arm_after_reset_initialized=initial_position
-        initial_pos_angle=150 if initial_position else 0
-        await self._arm_reset_back_right(self.first_arm_port,initial_postition_deg=initial_pos_angle)
+    async def first_arm_reset(self):
+        await self._arm_reset_back_right(self.first_arm_port)
 
     async def second_arm_up(self,degree=200,speed=700):
         if self.cfg["second_arm_motor_position"]=="top_left":
@@ -370,10 +362,6 @@ class FLLBaseLib:
 
 
     async def second_arm_down(self,degree=200,speed=700):
-        if self.second_arm_after_reset_initialized == False:
-            if degree == 200: degree+=150 #add skipped initial postion deg first time when arm is down
-            self.second_arm_after_reset_initialized=True
-
         if self.cfg["second_arm_motor_position"]=="top_left":
             await self.move_arm_relative(self.second_arm_port,-abs(degree),speed)
         elif self.cfg["second_arm_motor_position"]=="left_left":
@@ -385,10 +373,6 @@ class FLLBaseLib:
         myprint("first_arm_up done")
 
     async def first_arm_down(self,degree=200,speed=700):
-        if self.first_arm_after_reset_initialized == False:
-            if degree == 200: degree+=150 #add skipped initial postion deg first time when arm is down
-            self.first_arm_after_reset_initialized=True
-
         await self.move_arm_relative(self.first_arm_port,-abs(degree),speed)
         myprint("first_arm_down done")
 
@@ -429,7 +413,7 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
     async def robot_arm_reset(self):
         #await self.first_arm_reset()
-        await self.second_arm_reset(initial_position=False)
+        await self.second_arm_reset()
 
     async def go_between_launch_zones(self):
         await self.move_forward(200,velo=700)
@@ -443,10 +427,11 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.turn_left(65)
         await self.move_forward(60)
 
-    async def mission_9_UE_20_10_old(self):
+    async def mission_9_UE_20_10(self):
         speed=660
-        #await self.second_arm_reset()
-        #await self.move_forward(5)
+        #await self.back_arm_up()
+        #await self.back_arm_down()
+        await self.move_forward(5)
         await self.turn_left(46, correct_error=False)
         await self.move_forward(47)
         await self.move_backward(15,velo=660)
@@ -459,73 +444,6 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
         #next mission to immersive exp
 
-    async def mission_5_AF_30(self):
-
-        #await self.second_arm_reset()
-        #await self.second_arm_down(160)
-        await self.second_arm_down()
-        #await self.second_arm_up(40)
-        await self.move_forward(115,750)
-        await self.turn_left(10)
-        await self.turn_right(100)
-        await self.move_forward(20)
-        await self.second_arm_up(300)
-        await self.second_arm_down()
-        await self.move_backward(20)
-        await self.turn_right(37) #40
-        await self.move_forward(75,1000)
-        await self.turn_right(50) #48
-        await self.move_forward(80,700)
-
-
-
-
-        #await self.move_backward(90,1000)
-
-
-    async def mission_11_SD_20_10(self):
-
-        await self.second_arm_up(200)
-        await self.move_forward(20)
-        await self.turn_left(26)
-        await self.move_forward(62,900)
-        await self.second_arm_down(205,200)
-        await self.move_backward(70,1000)
-        #await self.turn_right(38)
-        #await self.second_arm_down(75)
-        #await self.move_forward(6)
-        #await self.second_arm_down(7)
-        #await self.turn_right(120)
-        #await self.move_forward(12)
-        #await self.turn_right(70)
-        #await self.move_forward(60,1000)
-
-    async def mission_13_Change_Lanes_20(self):
-
-        #await self.second_arm_reset(initial_position=False)
-        await self.second_arm_down()
-        await self.move_forward(12)
-        await self.turn_left(46)
-        await self.move_forward(25)
-        await self.turn_right(77.5)
-        await self.move_forward(14)
-        #original 23
-        await self.second_arm_up()
-        await self.turn_right(70)
-        #await self.move_backward(0)
-        await self.turn_right(70)
-        #await self.move_backward(25,1000)
-        #await self.turn_right(40)
-        #await self.second_arm_up()
-        await self.move_forward(40,1000)
-    
-    async def mission_9_UE_20_10(self):
-
-        await self.second_arm_down()
-        await self.move_forward(50,600,1)
-        await self.move_backward(50,1000)
-
-        
     async def mission_13_CSL_20(self):
         speed=660
         await self.second_arm_reset()
@@ -570,10 +488,10 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.move_forward(68,700)
         #await self.move_forward(66,700)
         await self.turn_left(45)
-        await self.second_arm_down() #18
+        await self.second_arm_down() #18 
         await runloop.sleep_ms(500)
         #return
-        await self.move_backward(3)
+        await self.move_backward(3) 
         await self.second_arm_up() #325
         await self.move_backward(9)
         await self.turn_right(69)
@@ -587,93 +505,68 @@ class FLL2024SubmergedMissions(FLLBaseLib):
         await self.move_backward(10)
         await self.turn_right(79)
         #await self.turn_right(77)
-        await self.move_backward(13)
+        await self.move_backward(13)    
         await self.move_forward(10)
         await self.turn_right(30)
         #await self.turn_right(50)
-        await self.second_arm_down()
+        await self.second_arm_down()  
         await self.move_forward(11,500)
         await self.second_arm_reset()
         await self.turn_left(75,700)
         await self.move_backward(65,700)
+       
 
 
-
-
+    
 
 
 
     async def mission_14b_15(self):
-        await self.move_forward(40,600)
-        await self.move_backward(40,600)
-
-
-
+        await self.move_forward(35,600)
+        await self.move_backward(35,600)
+    
+    
+    
     async def mission_15_RV_20_30(self):
         await self.move_forward(8*2.5,velo=700)
         await self.move_forward(33*2.5,velo=700,steer=-3)
         #await self.move_forward(21*2.5,velo=700,steer=-5)
-        await self.move_backward(6*2.5,velo=700)
+        await self.move_backward(8*2.5,velo=700)
         await self.turn_left(30)
         await self.move_forward(16*2.5,velo=700)
         await self.turn_right(45)
         await self.move_forward(24*2.5,velo=700)
 
-    async def mission_scoop(self):
-        await self.move_forward(10)
-        await self.turn_left(23)
-        await self.move_forward(60)
-        await self.turn_left(70,speed=150)
-        await self.move_forward(100,700)
-        await self.turn_left(15)
-        await self.move_forward(23)
-        await self.turn_left(77)
-        await self.move_forward(40)
-        await self.turn_right(60)
-        await self.move_forward(10)
-
     async def race1(self):
-        await self.mission_scoop1_WS_20()
+        await self.mission_1_CN_20_10_2_Shark_20_10_CR_20_15_6_30()
 
     async def race2(self):
-        await self.mission_1_CN_20_10_2_Shark_20_10_CR_20_15_6_30()
-        #await self.mission_15_RV_20_30()
-        #await self.mission_9_UE_20_10()
+        await self.mission_15_RV_20_30()
 
     async def race3(self):
-        #await self.mission_1_CN_20_10_2_Shark_20_10_CR_20_15()
         await self.mission_14b_15()
 
     async def race4(self):
         await self.mission_15_RV_20_30()
 
     async def race5(self):
-        await self.mission_5_AF_30()
-        #await self.mission_scoop()
+        await self.mission_13_CSL_20()
 
     async def race6(self):
-        await self.mission_13_Change_Lanes_20()
-        #await self.mission_13_CSL_20()
-        #await self.mission_scoop1_WS_20()
+        await self.mission_scoop1_WS_20()
 
     async def race7(self):
-        await self.mission_9_UE_20_10()
-
-    async def race8(self):
-        await self.mission_11_SD_20_10()
+        pass
 
     async def race9(self):
         pass
 
 
     async def test(self):
-        await self.second_arm_reset(initial_position=False)
-        await self.second_arm_down()
-        await self.second_arm_up()
-        await self.second_arm_down()
-        return
+        await self.first_arm_reset()
+        await self.first_arm_down()
         await sound.beep()
-        await self.second_arm_up(degree=200)
+        await self.first_arm_up(degree=200)
         await sound.beep()
         await self.second_arm_reset()
         await self.second_arm_down()
@@ -735,13 +628,12 @@ async def main():
 
     test=False
     race1=False
-    race2=False
+    race2=True
     race3=False
     race4=False
     race5=False
     race6=False
     race7=False
-    race8=True
     race9=False
     arm_reset=False
     if arm_reset:
@@ -780,9 +672,6 @@ async def main():
 
     if race7:
         await fll_match_missions.race7()
-
-    if race8:
-        await fll_match_missions.race8()
 
     if race9:
         await fll_match_missions.race9()
