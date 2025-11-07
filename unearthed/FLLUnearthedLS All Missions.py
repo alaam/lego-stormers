@@ -719,6 +719,129 @@ class FLL2024SubmergedMissions(FLLBaseLib):
 
 
 
+class FLL2025UnearthedMissions(FLLBaseLib):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    async def robot_arm_reset(self):
+        #await self.first_arm_reset()
+        await self.second_arm_reset(initial_position=False)
+
+    async def go_between_launch_zones(self):
+        await self.move_forward(200,velo=700)
+
+
+    async def race1(self):
+        await self.mission_2_SO_20_10()
+        return
+
+    async def race2(self):
+        await self.mission_11_AA_20_10()
+        return
+
+    async def race3(self):
+        pass
+    async def race4(self):
+        pass
+    async def race5(self):
+        pass
+    async def race6(self):
+        pass
+    async def race7(self):
+        pass
+    async def race8(self):
+        pass
+    async def race9(self):
+        pass
+
+    async def mission_1_SB_20_10(self):
+        await self.move_forward(28,velo=700)
+        await self.move_backward(10,velo=700)
+        await self.move_forward(4,velo=700)
+        await self.sleep(100)
+        await self.turn_right(20,speed=700)
+        await self.move_forward(3,velo=1000)
+        await self.turn_left(50,speed=1250)
+        await self.move_backward(27,velo=1000)
+        #This mission is consistent and good WARNING: DON'T FIX
+
+    async def mission_2_SO_20_10(self):
+        await self.first_arm_reset()
+        await self.move_forward(27,velo=700)
+        await self.first_arm_down()
+        await self.move_backward(20,velo=700)
+        await self.turn_left(50,speed=500)
+        await self.move_forward(10,velo=700)
+        await self.turn_right(43,speed=700)
+        await self.move_forward(23,velo=700)
+        await self.move_backward(35,velo=700)
+        return
+
+    async def mission_11_AA_20_10(self):
+        await self.first_arm_reset()
+        await self.turn_right(20,speed=500)
+        await self.move_forward(45,velo=700)
+        await self.turn_left(25,speed=500)
+        await self.move_forward(7,velo=700)
+        await self.turn_right(1,speed=500)
+        #for i in range(0,11):
+            #move
+
+        
+
+        #Consistent change.
+        #await self.move_backward(10,velo=700)
+        #await self.move_forward(4,velo=700)
+        #await self.sleep(100)
+        #await self.turn_right(20,speed=700)
+        #await self.move_forward(3,velo=1000)
+        #await self.turn_left(50,speed=1000)
+        #await self.move_backward(25,velo=1000)
+        #This mission is consistent and good WARNING: DON'T FIX
+
+    async def test(self):
+        await self.mission_1_SB_20_10()
+        return
+
+        await self.move_forward(10)
+        await self.second_arm_reset(initial_position=False)
+        await self.second_arm_down()
+        await self.second_arm_up()
+        await self.second_arm_down()
+        return
+        await sound.beep()
+        await self.second_arm_up(degree=200)
+        await sound.beep()
+        await self.second_arm_reset()
+        await self.second_arm_down()
+        await self.second_arm_up()
+
+
+        return
+        #total 200 degrees freedom of movement
+        await self.second_arm_up(degree=100)
+
+        return
+        await self.second_arm_reset()
+        return
+        await self.second_arm_down()
+        await sound.beep()
+        return
+        #total 200 degrees freedom of movement
+        await self.second_arm_up(degree=100)
+        await sound.beep()
+        await self.second_arm_up(degree=100)
+        await sound.beep()
+        await self.second_arm_down(degree=100)
+        await sound.beep()
+        await self.second_arm_up(degree=100)
+
+        pass
+
+
+
+
+
 
 async def main():
     # write your code here
@@ -745,12 +868,12 @@ async def main():
         "second_arm_motor_position":"left_left"
         }
     cfg=cfg_ls
-    fll_match_missions=FLL2024SubmergedMissions(cfg)
+    fll_match_missions=FLL2025UnearthedMissions(cfg)
     #await ls_robot.follow_line(10000)
 
-    test=True
+    test=False
     race1=False
-    race2=False
+    race2=True
     race3=False
     race4=False
     race5=False
