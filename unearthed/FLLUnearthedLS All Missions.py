@@ -732,7 +732,7 @@ class FLL2025UnearthedMissions(FLLBaseLib):
 
 
     async def race1(self):
-        await self.mission_2_SO_20_10()
+        await self.mission_12_SO_20_10()
         return
 
     async def race2(self):
@@ -740,9 +740,12 @@ class FLL2025UnearthedMissions(FLLBaseLib):
         return
 
     async def race3(self):
-        pass
+        await self.mission_10_TTS_30()
+        return
+
     async def race4(self):
-        pass
+        await self.mission_8_S_30_mission_F_6_30_mission_5_WLH_30()
+        return
     async def race5(self):
         pass
     async def race6(self):
@@ -765,7 +768,7 @@ class FLL2025UnearthedMissions(FLLBaseLib):
         await self.move_backward(27,velo=1000)
         #This mission is consistent and good WARNING: DON'T FIX
 
-    async def mission_2_SO_20_10(self):
+    async def mission_12_SO_20_10(self):
         await self.first_arm_reset()
         await self.move_forward(27,velo=700)
         await self.first_arm_down()
@@ -778,12 +781,46 @@ class FLL2025UnearthedMissions(FLLBaseLib):
         return
 
     async def mission_11_AA_20_10(self):
+        #await self.first_arm_reset()
+        #await self.turn_right(10,speed=500)
+        #await self.move_forward(45,velo=700)
+        #await self.turn_left(25,speed=500)
+        #await self.turn_right(1,speed=500)
+        #await self.first_arm_down(degree=45)
+        #await self.move_backward(5.25,velo=200)
+        #await self.move_forward(5.25,velo=200)
+        #await self.move_backward(5.25,velo=200)
+        #await self.move_forward(5.25,velo=200)
+        #await self.move_backward(5.25,velo=200)
+        await self.first_arm_up()
+        await self.move_forward(30)
+        await self.first_arm_down(speed=700)
+
+    async def mission_10_TTS_30(self):
         await self.first_arm_reset()
-        await self.turn_right(20,speed=500)
-        await self.move_forward(45,velo=700)
-        await self.turn_left(25,speed=500)
-        await self.move_forward(7,velo=700)
-        await self.turn_right(1,speed=500)
+        await self.move_forward(20,velo=700) #Ibacim Raiz
+        await self.turn_right(25,speed=700)
+        await self.move_forward(23,velo=700)
+        await self.turn_right(77,speed=700)
+        await self.move_forward(10,velo=700)
+        await self.first_arm_down(degree=90,speed=700)
+        await self.first_arm_up(degree=90,speed=700)
+        await self.turn_left(77,speed=700)
+        await self.move_backward(40,velo=700)
+        await self.first_arm_up()
+
+    async def mission_8_S_30_mission_F_6_30_mission_5_WLH_30(self):
+            await self.first_arm_up()
+            await self.move_forward(23,velo=700)
+            await self.first_arm_down()
+            await self.first_arm_up()
+            await self.first_arm_down()
+            await self.first_arm_up()
+            await self.first_arm_down()
+            await self.first_arm_up()
+            await self.move_backward(10,velo=700)
+            await self.turn_left(15,speed=700)
+            await self.move_forward(15,velo=700)
         #for i in range(0,11):
             #move
 
@@ -873,8 +910,8 @@ async def main():
 
     test=False
     race1=False
-    race2=True
-    race3=False
+    race2=False
+    race3=True
     race4=False
     race5=False
     race6=False
